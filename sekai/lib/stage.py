@@ -846,7 +846,7 @@ def draw_dead(z_background, life, dead_time):
             layout = layout_background_cover()
             ActiveSkin.background.draw(layout, z=z_background, a=0.3)
         else:
-            a = unlerp_clamped(0, 0.25, time() - dead_time)
+            a = unlerp_clamped(0, 2, time() - dead_time)
 
             for i in range(2):
                 for j in range(2):
