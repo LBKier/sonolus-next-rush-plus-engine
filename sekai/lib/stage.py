@@ -372,9 +372,13 @@ def draw_stage_and_accessories(
     last_time=1e8,
     dead_time=1e8,
 ):
+    # test values
+    score = int(score * 1.12345)
+    note_score = int(note_score * 1.12345)
+    
     ui_alpha = 1.0
     if Options.ui_intro and time() < -1.0:
-        ui_alpha = unlerp_clamped(-2.0, -1.0, time())
+        ui_alpha = unlerp_clamped(-3.0, -1.0, time())
     if not LevelConfig.skip_default_stage:
         draw_basic_stage(z_stage_lane, z_stage_cover, z_stage, z_judgment_line, alpha=ui_alpha)
     draw_stage_cover(z_cover, z_cover_line, alpha=ui_alpha)
@@ -947,7 +951,7 @@ def draw_score_bar(
 
 
 def get_gauge_progress(score):
-    xp = (0, 4000, 400000, 620000, 840000, 1000000)
+    xp = (0, 22500, 450000, 951000, 1178000, 1280000) # estimated on a level 30 with the help of the pjsk website
     fp = (
         0,
         0.447,
@@ -961,13 +965,13 @@ def get_gauge_progress(score):
 
 
 def get_score_rank(score):
-    if score >= 840000:
+    if score >= 1178000:
         return ScoreRankType.S
-    elif score >= 620000:
+    elif score >= 951000:
         return ScoreRankType.A
-    elif score >= 400000:
+    elif score >= 450000:
         return ScoreRankType.B
-    elif score >= 4000:
+    elif score >= 22500:
         return ScoreRankType.C
     else:
         return ScoreRankType.D
