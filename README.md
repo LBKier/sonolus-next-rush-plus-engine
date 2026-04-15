@@ -16,9 +16,9 @@ Editor: https://next-sekai-editor.sonolus.com/
 5. Run `sonolus-py dev`.
 
 ## My Notes
-[04/15/26]
-I forced pushed and lost my modified files smh 😒
-I finally found out how to merge branches lol, it took me a while cuz I'm new to Github
+04/15/26
+- I forced pushed and lost my modified files smh 😒
+- I finally found out how to merge branches lol, it took me a while cuz I'm new to Github
 
 ## Custom Resources
 
