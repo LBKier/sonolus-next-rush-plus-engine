@@ -373,8 +373,8 @@ def draw_stage_and_accessories(
     dead_time=1e8,
 ):
     # test values
-    score = int(score * 1.12345)
-    note_score = int(note_score * 1.12345)
+    score = floor(score * 1.12345)
+    note_score = floor(note_score * 1.12345)
     
     ui_alpha = 1.0
     if Options.ui_intro and time() < -1.0:
