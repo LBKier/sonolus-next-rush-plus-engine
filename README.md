@@ -15,6 +15,9 @@ Editor: https://next-sekai-editor.sonolus.com/
 4. [Ensure your venv is activated](https://docs.astral.sh/uv/pip/environments/#using-a-virtual-environment).
 5. Run `sonolus-py dev`.
 
+## My Notes
+I forced pushed and lost my modified files smh 😒
+
 ## Custom Resources
 
 ### Skin Sprites
