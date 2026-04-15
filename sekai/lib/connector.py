@@ -567,6 +567,11 @@ def update_circular_connector_particle(
 ):
     if not Options.note_effect_enabled:
         return
+    if not Options.fake_connector_particles and kind in {
+        ConnectorKind.ACTIVE_FAKE_NORMAL,
+        ConnectorKind.ACTIVE_FAKE_CRITICAL,
+    }:
+        return
     layout = layout_circular_effect(lane, w=3.5, h=2.1)
     if replace or handle.id == 0:
         particle = +Particle(-1)
@@ -590,6 +595,11 @@ def update_linear_connector_particle(
 ):
     if not Options.note_effect_enabled:
         return
+    if not Options.fake_connector_particles and kind in {
+        ConnectorKind.ACTIVE_FAKE_NORMAL,
+        ConnectorKind.ACTIVE_FAKE_CRITICAL,
+    }:
+        return
     layout = layout_linear_effect(lane, shear=0)
     particle = +Particle
     if replace or handle.id == 0:
@@ -611,6 +621,11 @@ def spawn_linear_connector_trail_particle(
 ):
     if not Options.note_effect_enabled:
         return
+    if not Options.fake_connector_particles and kind in {
+        ConnectorKind.ACTIVE_FAKE_NORMAL,
+        ConnectorKind.ACTIVE_FAKE_CRITICAL,
+    }:
+        return
     layout = layout_linear_effect(lane, shear=0)
     particle = +Particle
     match kind:
@@ -629,6 +644,11 @@ def spawn_connector_slot_particles(
     size: float,
 ):
     if not Options.note_effect_enabled:
+        return
+    if not Options.fake_connector_particles and kind in {
+        ConnectorKind.ACTIVE_FAKE_NORMAL,
+        ConnectorKind.ACTIVE_FAKE_CRITICAL,
+    }:
         return
     particle = +Particle
     match kind:
@@ -651,6 +671,11 @@ def draw_connector_slot_glow_effect(
 ):
     if not Options.slot_effect_enabled:
         return
+    if not Options.fake_connector_particles and kind in {
+        ConnectorKind.ACTIVE_FAKE_NORMAL,
+        ConnectorKind.ACTIVE_FAKE_CRITICAL,
+    }:
+        return
     sprite = +Sprite
     match kind:
         case ConnectorKind.ACTIVE_NORMAL | ConnectorKind.ACTIVE_FAKE_NORMAL:
@@ -670,6 +695,73 @@ def draw_connector_slot_glow_effect(
     a = remap_clamped(start_time, start_time + 0.25, 0.0, 0.25, time())
     lightweight = 0.25 if ActiveParticles.lightweight.is_available else 1
     sprite.draw(layout, z=z, a=a * lightweight)
+
+
+def update_connector_sfx(
+    handle: LoopedEffectHandle,
+    kind: ActiveConnectorKind,
+    replace: bool,
+):
+    if not Options.sfx_enabled:
+        return
+    if not Options.fake_connector_particles and kind in {
+        ConnectorKind.ACTIVE_FAKE_NORMAL,
+        ConnectorKind.ACTIVE_FAKE_CRITICAL,
+    }:
+        return
+    if Options.auto_sfx:
+        return
+    effect = +Effect
+    match kind:
+        case ConnectorKind.ACTIVE_NORMAL | ConnectorKind.ACTIVE_FAKE_NORMAL:
+            effect @= Effects.normal_hold
+        case ConnectorKind.ACTIVE_CRITICAL | ConnectorKind.ACTIVE_FAKE_CRITICAL:
+            effect @= Effects.critical_hold
+        case _:
+            assert_never(kind)
+    if replace:
+        replace_looped_sfx(handle, effect)
+    elif handle.id == 0:
+        handle @= effect.loop()
+
+
+def schedule_connector_sfx(
+    kind: ActiveConnectorKind,
+    timescale_group: int | EntityRef,
+    start_time: float,
+    end_time: float,
+):
+    if not Options.sfx_enabled:
+        return
+    if not Options.fake_connector_particles and kind in {
+        ConnectorKind.ACTIVE_FAKE_NORMAL,
+        ConnectorKind.ACTIVE_FAKE_CRITICAL,
+    }:
+        return
+    effect = +Effect
+    match kind:
+        case ConnectorKind.ACTIVE_NORMAL | ConnectorKind.ACTIVE_FAKE_NORMAL:
+            effect @= Effects.normal_hold
+        case ConnectorKind.ACTIVE_CRITICAL | ConnectorKind.ACTIVE_FAKE_CRITICAL:
+            effect @= Effects.critical_hold
+        case _:
+            assert_never(kind)
+    last_start_time = start_time
+    hide = False
+    for group in iter_timescale_changes_in_group_from_time(timescale_group, start_time):
+        group_time = beat_to_time(group.beat)
+        if group_time <= start_time:
+            hide = group.hide_notes
+            continue
+        if group_time >= end_time:
+            break
+        if hide and not group.hide_notes:
+            last_start_time = group_time
+        elif not hide and group.hide_notes and group_time > last_start_time:
+            schedule_looped_sfx(effect, last_start_time, group_time)
+        hide = group.hide_notes
+    if not hide and end_time > last_start_time:
+        schedule_looped_sfx(effect, last_start_time, end_time)
 
 
 def update_connector_sfx(
