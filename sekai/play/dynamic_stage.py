@@ -18,6 +18,7 @@ from sonolus.script.timing import beat_to_bpm, beat_to_time
 from sekai.lib import archetype_names
 from sekai.lib.baseevent import BaseEvent, init_event_list
 from sekai.lib.ease import EaseType
+from sekai.lib.events import Fever
 from sekai.lib.layout import layout_hitbox, preempt_time, touch_to_lane
 from sekai.lib.level_config import LevelConfig
 from sekai.lib.stage import (
@@ -98,6 +99,28 @@ class DynamicStage(PlayArchetype):
         self.props @= get_stage_props(self)
         if time() >= self.end_time:
             self.despawn = True
+            return
+        self.fever_boundary()
+
+    def fever_boundary(self):
+        if self.props.a > 0:
+            l = self.props.lane - self.props.width
+            r = self.props.lane + self.props.width
+
+            if l < Fever.min_l:
+                Fever.min_l = l
+                Fever.alpha_l = self.props.a
+            elif l == Fever.min_l and self.props.a > Fever.alpha_l:
+                Fever.alpha_l = self.props.a
+
+            if r > Fever.max_r:
+                Fever.max_r = r
+                Fever.alpha_r = self.props.a
+            elif r == Fever.max_r and self.props.a > Fever.alpha_r:
+                Fever.alpha_r = self.props.a
+
+            Fever.has_active = True
+            Fever.y_offset = self.props.y_offset
 
     @callback(order=2)
     def touch(self):
