@@ -17,21 +17,10 @@ class StageCoverMode(IntEnum):
     FULL_WIDTH = 2
 
 
-class StageCoverNoteSpeedCompensation(IntEnum):
-    OFF = 0
-    FIXED_ONLY = 1
-    FULL = 2
-
-
 class VibrateMode(IntEnum):
     DISABLED = 0
     MISS = 1
     MISS_AND_GOOD = 2
-
-
-class HitboxMode(IntEnum):
-    ANGLED = 0
-    VERTICAL = 1
 
 
 class SkillMode(IntEnum):
@@ -266,6 +255,11 @@ class Options:
         scope="Sekai",
         default=True,
     )
+    fake_connector_particles: bool = toggle_option(
+        name="Fake Hold Particles",
+        scope="LBKier",
+        default=False,
+    )
     lane_effect_enabled: bool = toggle_option(
         name=StandardText.LANE_EFFECT,
         scope="Sekai",
@@ -305,17 +299,6 @@ class Options:
         max=1,
         step=0.01,
         unit=StandardText.PERCENTAGE_UNIT,
-    )
-    stage_cover_scroll_speed_compensation: StageCoverNoteSpeedCompensation = select_option(
-        name="Stage Cover Note Speed Compensation",
-        advanced=True,
-        scope="Sekai",
-        values=[
-            "Off",
-            "Fixed Only",
-            "Full",
-        ],
-        default=1,
     )
     hidden: float = slider_option(
         name=StandardText.HIDDEN,
@@ -378,16 +361,6 @@ class Options:
         max=4,
         step=0.05,
         unit=StandardText.PERCENTAGE_UNIT,
-    )
-    hitbox_mode: HitboxMode = select_option(
-        name="Hitbox Mode",
-        scope="Next Sekai",
-        values=[
-            "Angled",
-            "Vertical",
-        ],
-        advanced=True,
-        default=1,
     )
     alternative_approach_curve: bool = toggle_option(
         name="Alternative Approach Curve",
@@ -481,3 +454,4 @@ class Options:
         "Forced Fever Chance",
         "Skill Effect",
     )
+    
