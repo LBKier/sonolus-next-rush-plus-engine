@@ -113,6 +113,7 @@ class FeverChance(PlayArchetype):
     z: float = entity_memory()
     z2: float = entity_memory()
     z3: float = entity_memory()
+    z4: float = entity_memory()
 
     @callback(order=-2)
     def preprocess(self):
@@ -125,6 +126,7 @@ class FeverChance(PlayArchetype):
         self.z = initialization.LayerCache.fever_chance_cover
         self.z2 = initialization.LayerCache.fever_chance_side
         self.z3 = initialization.LayerCache.fever_chance_gauge
+        self.z4 = initialization.LayerCache.fever_chance_gauge
 
     def spawn_order(self):
         return self.start_time
@@ -158,8 +160,8 @@ class FeverChance(PlayArchetype):
         if show_ui:
             if Options.fever_effect == 0:
                 draw_fever_side_cover(self.z, elapsed)
-            draw_fever_side_bar(self.z2, elapsed)
-            draw_fever_gauge(self.z3, self.percentage)
+            draw_fever_side_bar(self.z2, self.z3, elapsed)
+            draw_fever_gauge(self.z4, self.percentage)
 
     @callback(order=3)
     def update_sequential(self):

@@ -674,7 +674,7 @@ def draw_dynamic_stage(
         sprites.judgment_gradient.draw(layout, z=z, a=a)
 
     if lane_alpha > 0:
-        la = a * lane_alpha
+        la = a * lane_alpha * Options.lane_alpha
         ActiveSkin.lane_background.draw(layout_lane_by_edges(l, r), z=z_bg0, a=la)
 
         p_left = left_border_style.progress
@@ -978,7 +978,7 @@ def get_score_rank(score):
 
 
 def play_lane_hit_effects(lane: float, sfx: bool = True):
-    if sfx:
+    if sfx or not Options.prevent_empty_lane_sfx:
         play_lane_sfx(lane)
     play_lane_particle(lane)
 

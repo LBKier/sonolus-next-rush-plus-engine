@@ -91,6 +91,11 @@ class Layout:
     progress_start: float
     progress_cutoff: float
     flick_speed_threshold: float
+    t: float
+    w_scale: float
+    h_scale: float
+    fixed_w_scale: float
+    fixed_h_scale: float
 
 
 @level_memory
@@ -100,9 +105,6 @@ class DynamicLayout:
     h_scale: float
     note_h: float
     scaled_note_h: float
-
-    fixed_w_scale: float
-    fixed_h_scale: float
 
 
 def init_layout():
@@ -119,6 +121,26 @@ def init_layout():
 
     Layout.field_w = field_w
     Layout.field_h = field_h
+
+    t = Layout.field_h * (0.5 + 1.15875 * (47 / 1176))
+    b = Layout.field_h * (0.5 - 1.15875 * (803 / 1176))
+    w = Layout.field_w * ((1.15875 * (1420 / 1176)) / TARGET_ASPECT_RATIO / 12)
+
+    Layout.t = t
+    Layout.w_scale = w
+    Layout.h_scale = b - t
+
+    if aspect_ratio() > TARGET_ASPECT_RATIO:
+        field_w = screen().h * TARGET_ASPECT_RATIO
+        field_h = screen().h
+    else:
+        field_w = screen().w
+        field_h = screen().w / TARGET_ASPECT_RATIO
+    ref_t = field_h * (0.5 + 1.15875 * (47 / 1176))
+    ref_b = field_h * (0.5 - 1.15875 * (803 / 1176))
+    ref_w = field_w * ((1.15875 * (1420 / 1176)) / TARGET_ASPECT_RATIO / 12)
+    Layout.fixed_w_scale = ref_w
+    Layout.fixed_h_scale = ref_b - ref_t
 
     Layout.approach_start = 0.0
 
@@ -208,18 +230,6 @@ def refresh_layout():
     DynamicLayout.note_h = NOTE_H * (0.6 * zoom + 0.4)
     DynamicLayout.scaled_note_h = DynamicLayout.note_h * DynamicLayout.h_scale
 
-    if aspect_ratio() > TARGET_ASPECT_RATIO:
-        field_w = screen().h * TARGET_ASPECT_RATIO
-        field_h = screen().h
-    else:
-        field_w = screen().w
-        field_h = screen().w / TARGET_ASPECT_RATIO
-    ref_t = field_h * (0.5 + 1.15875 * (47 / 1176))
-    ref_b = field_h * (0.5 - 1.15875 * (803 / 1176))
-    ref_w = field_w * ((1.15875 * (1420 / 1176)) / TARGET_ASPECT_RATIO / 12) * zoom
-    DynamicLayout.fixed_w_scale = ref_w
-    DynamicLayout.fixed_h_scale = ref_b - ref_t
-
 
 def approach(progress: float) -> float:
     progress = lerp(Layout.approach_start, 1.0, progress)
@@ -282,10 +292,17 @@ def transform_vec(v: Vec2) -> Vec2:
     )
 
 
+def transform_static_vec(v: Vec2) -> Vec2:
+    return Vec2(
+        v.x * Layout.w_scale,
+        v.y * Layout.h_scale + Layout.t,
+    )
+
+
 def transform_fixed_vec(v: Vec2) -> Vec2:
     return Vec2(
-        v.x * DynamicLayout.fixed_w_scale,
-        v.y * DynamicLayout.fixed_h_scale + DynamicLayout.t,
+        v.x * Layout.fixed_w_scale,
+        v.y * Layout.fixed_h_scale + Layout.t,
     )
 
 
@@ -295,6 +312,15 @@ def transform_quad(q: QuadLike) -> Quad:
         br=transform_vec(q.br),
         tl=transform_vec(q.tl),
         tr=transform_vec(q.tr),
+    )
+
+
+def transform_static_quad(q: QuadLike) -> Quad:
+    return Quad(
+        bl=transform_static_vec(q.bl),
+        br=transform_static_vec(q.br),
+        tl=transform_static_vec(q.tl),
+        tr=transform_static_vec(q.tr),
     )
 
 
@@ -1068,7 +1094,7 @@ def layout_combo_label(
     w: float,
     h: float,
 ) -> Quad:
-    return transform_quad(
+    return transform_static_quad(
         Quad(
             bl=Vec2(center.x - w, center.y + h),
             br=Vec2(center.x + w, center.y + h),
@@ -1112,8 +1138,8 @@ def layout_skill_judgment_line() -> Quad:
     return perspective_rect(l=-6, r=6, t=t, b=b)
 
 
-def layout_fever_cover_left() -> Quad:
-    p = perspective_rect(l=-6.5, r=0, t=0, b=get_perspective_y(-1))
+def layout_fever_cover(l, r) -> Quad:
+    p = perspective_rect(l=l, r=r, t=0, b=get_perspective_y(-1))
     safe_bl_x = min(screen().bl.x, p.bl.x)
 
     return Quad(
@@ -1121,18 +1147,6 @@ def layout_fever_cover_left() -> Quad:
         br=p.bl,
         tl=Vec2(screen().tl.x, p.tr.y),
         tr=p.tl,
-    )
-
-
-def layout_fever_cover_right() -> Quad:
-    p = perspective_rect(l=0, r=6.5, t=0, b=get_perspective_y(-1))
-    safe_br_x = max(screen().br.x, p.br.x)
-
-    return Quad(
-        bl=p.br,
-        br=Vec2(safe_br_x, screen().br.y),
-        tl=p.tr,
-        tr=Vec2(screen().tr.x, p.tl.y),
     )
 
 
@@ -1154,6 +1168,14 @@ def layout_fever_gauge_right(t) -> Quad:
     return perspective_rect(l=6, r=6.5, t=t, b=get_perspective_y(-1))
 
 
+def layout_dynamic_fever_side(l: float, r: float, percentage: float, travel: float = 1.0) -> Quad:
+    t_val = lerp(LANE_B, LANE_T, percentage)
+
+    b_val = get_perspective_y(-1)
+
+    return perspective_rect(l=l, r=r, t=t_val, b=b_val, travel=travel)
+
+
 def layout_fever_text() -> Quad:
     center = 0.65
     rect = Rect(t=center - 0.2, b=center + 0.2, l=-1.5, r=1.5)
@@ -1165,11 +1187,11 @@ def layout_fever_border() -> Rect:
 
 
 def transform_fixed_size(h, w):
-    target_width = w * DynamicLayout.fixed_w_scale
-    target_height = h * DynamicLayout.fixed_h_scale
+    target_width = w * Layout.fixed_w_scale
+    target_height = h * Layout.fixed_h_scale
 
-    width = target_width / DynamicLayout.w_scale
-    height = target_height / DynamicLayout.h_scale
+    width = target_width / Layout.w_scale
+    height = target_height / Layout.h_scale
 
     return height, width
 
