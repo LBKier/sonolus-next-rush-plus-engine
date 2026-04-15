@@ -379,6 +379,11 @@ def draw_stage_and_accessories(
     ui_alpha = 1.0
     if Options.ui_intro and time() < -1.0:
         ui_alpha = unlerp_clamped(-3.0, -1.0, time())
+
+    stage_alpha = ui_alpha * Options.background_alpha
+        if life == 0:
+            stage_alpha *= (1 - 0.25 * unlerp_clamped(0, 2, time() - dead_time))
+    
     if not LevelConfig.skip_default_stage:
         draw_basic_stage(z_stage_lane, z_stage_cover, z_stage, z_judgment_line, alpha=ui_alpha)
     draw_stage_cover(z_cover, z_cover_line, alpha=ui_alpha)
